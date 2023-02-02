@@ -16,9 +16,9 @@ name: firestore-shorten-urls-bitly
 version: 0.1.8
 specVersion: v1beta
 
-displayName: Shorten URLs
+displayName: Firestore Post Request
 description:
-  Shortens URLs written to a specified Cloud Firestore collection (uses Bitly).
+  Makes post requests
 
 license: Apache-2.0
 
@@ -26,7 +26,7 @@ sourceUrl: https://github.com/firebase/extensions/tree/master/firestore-shorten-
 releaseNotesUrl: https://github.com/firebase/extensions/blob/master/firestore-shorten-urls-bitly/CHANGELOG.md
 
 author:
-  authorName: Firebase
+  authorName: cabljac
   url: https://firebase.google.com
 
 contributors:
@@ -47,7 +47,7 @@ roles:
     reason: Allows the extension to write shortened URLs to Cloud Firestore.
 
 resources:
-  - name: fsurlshortener
+  - name: firestorePostRequest
     type: firebaseextensions.v1beta.function
     description:
       Listens for writes of new URLs to your specified Cloud Firestore collection, shortens the URLs,
@@ -58,10 +58,6 @@ resources:
       eventTrigger:
         eventType: providers/cloud.firestore/eventTypes/document.write
         resource: projects/${param:PROJECT_ID}/databases/(default)/documents/${param:COLLECTION_PATH}/{documentId}
-
-externalServices:
-  - name: Bitly
-    PricingUri: https://bitly.com/pages/pricing
 
 params:
   - param: LOCATION
@@ -121,7 +117,7 @@ params:
     required: true
     immutable: true
 
-  - param: BITLY_ACCESS_TOKEN
+  - param: BEARER_ACCESS_TOKEN
     label: Bitly access token
     type: secret
     description: >
@@ -139,7 +135,17 @@ params:
     default: urls
     required: true
 
-  - param: URL_FIELD_NAME
+  - param: TEMPLATE_PATH
+    label: Template Path
+    description: >
+      What is the path to the collection that contains the URLs that you want to shorten?
+    example: templates/template1
+    validationRegex: "^[^/]+(/[^/]+/[^/]+)*$"
+    validationErrorMessage: Must be a valid Cloud Firestore collection
+    default: templates/template1
+    required: true
+
+  - param: INPUT_FIELD_NAME
     label: URL field name
     description: >
       What is the name of the field that contains the original long URLs that you want to shorten?
@@ -147,7 +153,7 @@ params:
     default: url
     required: true
 
-  - param: SHORT_URL_FIELD_NAME
+  - param: OUTPUT_FIELD_NAME
     label: Short URL field name
     description: >
       What is the name of the field where you want to store your shortened URLs?

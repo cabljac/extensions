@@ -19,7 +19,7 @@ import config from "./config";
 
 const obfuscatedConfig = {
   ...config,
-  bitlyAccessToken: "********",
+  bearerAccessToken: "********",
 };
 
 export const complete = () => {
