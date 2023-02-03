@@ -48,23 +48,47 @@ class FirestorePoster extends Poster {
     snapshot: admin.firestore.DocumentSnapshot<{
       input;
       output?;
-      metadata: { currentVersion?: number | undefined };
+      metadata?: {
+        currentVersion?: number | undefined;
+        status?: "unprocessed" | "pending" | "processed" | undefined;
+      };
     }>
   ): Promise<void> {
-    const body = this.extractBody(snapshot);
     const { metadata } = snapshot.data();
-    const currentVersion = metadata?.currentVersion || 0;
+    if (!metadata || !metadata.status) {
+      await this.updateMetadata(snapshot, { status: "unprocessed" });
+    }
+    if (metadata.status === "unprocessed") {
+      await this.updateMetadata(snapshot, { status: "pending" });
 
-    try {
-      const response: any = await this.instance.post(this.apiUrl, body);
+      const body = this.extractBody(snapshot);
+      const currentVersion = metadata?.currentVersion || 0;
 
-      const { data } = response;
+      try {
+        const response = await this.instance.post(this.apiUrl, body);
 
-      const output = this.template.render({ data, currentVersion });
+        let output;
 
-      await this.updateDocument(snapshot, { output });
-    } catch (err) {
-      logs.error(err);
+        const { data } = response;
+
+        if (config.responseField) {
+          output = data[config.responseField];
+        } else {
+          output = data;
+        }
+
+        if (this.template) {
+          output = this.template.render({ data: output, currentVersion });
+        }
+
+        if (!metadata || !metadata.status) {
+          await this.updateMetadata(snapshot, { status: "unprocessed" });
+        }
+
+        await this.updateDocument(snapshot, output);
+      } catch (err) {
+        logs.error(err);
+      }
     }
   }
 }

@@ -22,4 +22,5 @@ export default {
   inputFieldName: process.env.INPUT_FIELD_NAME,
   apiURL: process.env.API_URL,
   templatePath: process.env.TEMPLATE_PATH,
+  responseField: process.env.RESPONSE_FIELD,
 };

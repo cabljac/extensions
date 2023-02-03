@@ -39,7 +39,9 @@ export abstract class Poster {
     this.outputFieldName = outputFieldName;
     // Initialize the Firebase Admin SDK
     admin.initializeApp();
-    this.template = new Template(admin.firestore().doc(config.templatePath));
+    if (config.templatePath) {
+      this.template = new Template(admin.firestore().doc(config.templatePath));
+    }
   }
 
   public async onDocumentWrite(
@@ -133,12 +135,25 @@ export abstract class Poster {
     output: any
   ): Promise<void> {
     this.logs.updateDocument(snapshot.ref.path);
-
     // Wrapping in transaction to allow for automatic retries (#48)
     await admin.firestore().runTransaction((transaction) => {
       transaction.update(snapshot.ref, this.outputFieldName, output);
+      transaction.update(snapshot.ref, "metadata", { status: "processed" });
       return Promise.resolve();
     });
     this.logs.updateDocumentComplete(snapshot.ref.path);
+  }
+
+  protected async updateMetadata(
+    snapshot: admin.firestore.DocumentSnapshot,
+    metadata: any
+  ): Promise<void> {
+    // this.logs.updateDocument(snapshot.ref.path);
+    // Wrapping in transaction to allow for automatic retries (#48)
+    await admin.firestore().runTransaction((transaction) => {
+      transaction.update(snapshot.ref, "metadata", metadata);
+      return Promise.resolve();
+    });
+    // this.logs.updateDocumentComplete(snapshot.ref.path);
   }
 }
