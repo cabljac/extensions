@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
-        name: Install Node.js 16
+        name: Install Node.js 14
         with:
-          node-version: "16"
+          node-version: "14"
       - uses: actions/setup-java@v3
         with:
           distribution: "temurin"
@@ -36,9 +36,7 @@ jobs:
           sudo npm i -g firebase-tools
       - name: Install dependencies
         run: |
-          cd firestore-counter/functions
           npm i
-          npm run build
       - name: Build emulator functions
         run: |
           cd _emulator/functions
